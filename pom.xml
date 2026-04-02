@@ -42,9 +42,20 @@
         <java.version>17</java.version>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.3.4</spring-boot.version>
+        <spring-boot.version>3.5.13</spring-boot.version>
         <bpmnflow-starter.version>2.0.0</bpmnflow-starter.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>github-starter</id>
+            <url>https://maven.pkg.github.com/jefersonferr/bpmnflow-spring-boot-starter</url>
+        </repository>
+        <repository>
+            <id>github-core</id>
+            <url>https://maven.pkg.github.com/jefersonferr/bpmnflow-core</url>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -59,7 +70,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- BPMNFlow Spring Boot Starter — brings in bpmnflow-core transitively -->
+        <!-- BPMNFlow Spring Boot Starter -->
         <dependency>
             <groupId>org.bpmnflow</groupId>
             <artifactId>bpmnflow-spring-boot-starter</artifactId>
@@ -97,6 +108,11 @@
                     <release>17</release>
                     <parameters>true</parameters>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
