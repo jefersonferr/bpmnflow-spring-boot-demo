@@ -57,6 +57,13 @@
         </repository>
     </repositories>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -70,7 +77,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- BPMNFlow Spring Boot Starter -->
+        <!-- BPMNFlow Spring Boot Starter — brings in bpmnflow-core transitively -->
         <dependency>
             <groupId>org.bpmnflow</groupId>
             <artifactId>bpmnflow-spring-boot-starter</artifactId>
