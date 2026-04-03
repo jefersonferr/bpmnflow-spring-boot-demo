@@ -21,13 +21,31 @@ public class SwaggerConfig {
                         .title("BPMNFlow API")
                         .description("""
                                 Lightweight BPMN workflow navigation API.
-                                
+
                                 Parses a BPMN model at startup and exposes endpoints for:
                                 - **Workflow inspection** — metadata, activities, stages, rules
                                 - **Navigation** — next steps from any activity, status-driven routing
                                 - **Validation** — inconsistencies detected in the BPMN model
                                 - **Model upload** — hot-swap the active BPMN model at runtime via POST /bpmnflow/model
                                 - **Process** — generic navigation endpoints that work with any active model
+
+                                ---
+
+                                **Default model: Pizza Delivery Process**
+
+                                The model loaded automatically at startup is a Pizza Delivery process \
+                                modelled in BPMN 2.0 with BPMNFlow extension properties. \
+                                It covers four swim lanes (Customer, Pizza Shop Clerk, Pizza Chef, Pizza Delivery Guy) \
+                                and three exclusive gateways (Order valid?, Pizza ready?, Prepaid?).
+
+                                Download the model file: \
+                                [pizza-delivery.bpmn](https://github.com/jefersonferr/bpmnflow-spring-boot-demo/raw/master/src/main/resources/pizza-delivery.bpmn)
+
+                                The model is compatible with **Camunda Platform 7** and can be opened \
+                                and edited with [Camunda Modeler](https://camunda.com/download/modeler/).
+
+                                To replace it with your own model at runtime, use **POST /bpmnflow/model** \
+                                with a multipart file upload — no restart required.
                                 """)
                         .version("1.0.0")
                         .contact(new Contact()
