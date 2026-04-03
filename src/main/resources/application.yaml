@@ -2,7 +2,7 @@ server:
   port: 8080
 
 bpmnflow:
-  model-path: classpath:process.bpmn
+  model-path: classpath:pizza-delivery.bpmn
   config-path: classpath:bpmn-config.yaml
   expose-api: true   # Enables GET /bpmnflow/** inspection endpoints
 

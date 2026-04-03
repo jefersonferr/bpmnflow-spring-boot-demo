@@ -14,6 +14,7 @@
 - [What this demo shows](#what-this-demo-shows)
 - [Prerequisites](#prerequisites)
 - [Running the application](#running-the-application)
+- [Example model — Pizza Delivery](#example-model--pizza-delivery)
 - [API endpoints](#api-endpoints)
 - [Project structure](#project-structure)
 - [How it works](#how-it-works)
@@ -78,6 +79,66 @@ http://localhost:8080/swagger-ui.html
 
 ---
 
+## Example model — Pizza Delivery
+
+The demo ships with `pizza-delivery.bpmn`, a complete end-to-end pizza delivery process modelled in BPMN 2.0 and fully annotated with BPMNFlow extension properties.
+
+![Pizza Delivery Process](pizza-delivery.png)
+
+### Process overview
+
+The model covers four participants across four swim lanes, connected by three exclusive gateways:
+
+| Stage | Code | Lane | Activities |
+|---|---|---|---|
+| Customer | `CS` | Customer | Select Pizza, Order Pizza, Eat Pizza |
+| Shop Clerk | `SC` | Pizza Shop Clerk | Receive Order, Call to Customer |
+| Chef | `CH` | Pizza Chef | Bake Pizza |
+| Delivery | `DL` | Pizza Delivery Guy | Deliver Pizza, Receive Payment, Issue Receipt |
+
+### Flow description
+
+1. The customer selects and orders a pizza — triggering the `NEW` process status from the `StartEvent`
+2. The clerk receives the order and evaluates it at the **Order valid?** gateway:
+    - **Needs attention** (`PENDING`) → clerk calls the customer, who loops back to the gateway
+    - **Order confirmed** (`IN_PREPARATION`) → pizza goes to the chef
+3. The chef bakes the pizza and evaluates readiness at the **Pizza ready?** gateway:
+    - **Not ready yet** (`IN_PREPARATION`) → bake again
+    - **Ready for delivery** (`OUT_FOR_DELIVERY`) → pizza goes to the delivery guy
+4. The delivery guy delivers and evaluates payment at the **Prepaid?** gateway:
+    - **Collect payment** → receives payment and issues receipt, then customer eats
+    - **Only delivery** → customer goes straight to eating
+5. Customer eats and the process ends at `Hunger Satisfied` with status `CLOSED`
+
+### Extension properties summary
+
+| Element | Property | Value |
+|---|---|---|
+| Process | `process_type` | `FD` (Food Delivery) |
+| Process | `process_subtype` | `DLV` (Delivery) |
+| StartEvent | `process_status` | `NEW` |
+| EndEvent | `process_status` | `CLOSED` |
+| Gateway flow | `conclusion` | `ORDER_CONFIRMED`, `NEEDS_ATTENTION`, `READY_FOR_DELIVERY`, `NOT_READY`, `COLLECT_PAYMENT`, `ONLY_DELIVERY` |
+
+### Editing the model
+
+The model file is compatible with **Camunda Platform 7** and can be opened and edited with [Camunda Modeler](https://camunda.com/download/modeler/). To add or modify extension properties, open any element in the modeler, go to the **Properties Panel** → **Extension Properties** → click **+**.
+
+> The model targets Camunda Platform 7 (`modeler:executionPlatformVersion="7.22.0"`). When opening in Camunda Modeler, make sure the execution platform is set to **Camunda Platform 7** to ensure full compatibility with the BPMNFlow extension property format.
+
+### Using a different model
+
+You can replace the active model at runtime without restarting:
+
+```bash
+curl -X POST http://localhost:8080/bpmnflow/model \
+  -F "file=@your-process.bpmn"
+```
+
+All `/process/**` and `/bpmnflow/**` endpoints will immediately reflect the new model.
+
+---
+
 ## API endpoints
 
 ### Process (generic navigation)
@@ -115,14 +176,15 @@ src/main/
 └── resources/
     ├── application.yaml           — Server config and bpmnflow properties
     ├── bpmn-config.yaml           — Validation/extraction rules for the BPMN parser
-    └── process.bpmn               — Default BPMN model loaded at startup
+    ├── pizza-delivery.bpmn        — Example BPMN model (Pizza Delivery process)
+    └── pizza-delivery.png         — Diagram image of the example model
 ```
 
 ---
 
 ## How it works
 
-The starter auto-configures a `WorkflowEngine` bean by parsing `process.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
+The starter auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
 
 **Open a process instance** — finds all `START_TO_TASK` rules in the active model and resolves the entry activity and initial status directly from the `StartEvent`, without requiring any input from the caller.
 
