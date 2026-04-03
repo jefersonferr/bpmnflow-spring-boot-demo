@@ -83,7 +83,7 @@ http://localhost:8080/swagger-ui.html
 
 The demo ships with `pizza-delivery.bpmn`, a complete end-to-end pizza delivery process modelled in BPMN 2.0 and fully annotated with BPMNFlow extension properties.
 
-![Pizza Delivery Process](pizza-delivery.png)
+![Pizza Delivery Process](src/main/resources/pizza-delivery.png)
 
 ### Process overview
 
