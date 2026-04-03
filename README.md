@@ -1,10 +1,11 @@
 # BPMNFlow Spring Boot Demo
 
-> A runnable Spring Boot application that demonstrates the [bpmnflow-spring-boot-starter](https://github.com/jefersonferr/bpmnflow-spring-boot-starter) with a real insurance claims process (RDCT - Outros Danos).
+> A runnable Spring Boot application that demonstrates the [bpmnflow-spring-boot-starter](https://github.com/jefersonferr/bpmnflow-spring-boot-starter) — parse any BPMN model at startup, navigate it at runtime, and hot-swap it without restarting.
 
 ![Java](https://img.shields.io/badge/Java-17-blue)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.13-brightgreen)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.x-brightgreen)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![CI](https://github.com/jefersonferr/bpmnflow-spring-boot-demo/actions/workflows/ci.yml/badge.svg)
 
 ---
 
@@ -21,14 +22,14 @@
 
 ## What this demo shows
 
-This demo illustrates the core value proposition of BPMNFlow: **a Spring Boot application that navigates workflow transitions without any hardcoded business logic**. All routing decisions come from the BPMN model at runtime.
+This demo illustrates the core value proposition of BPMNFlow: **a Spring Boot application that navigates workflow transitions without any hardcoded business logic**. All routing decisions come from the active BPMN model at runtime.
 
 Specifically it demonstrates:
 
 - Zero-config startup — the BPMN model and config are loaded automatically via the starter
-- Domain controller (`ClaimsController`) that queries the engine to open cases, resolve next steps, and generate a full process guide
+- `ProcessController` — generic navigation endpoints that work with any active BPMN model
+- Hot-swap — upload a new `.bpmn` file at runtime via `POST /bpmnflow/model` and all endpoints immediately reflect the new model
 - Swagger UI with full OpenAPI documentation
-- The `POST /bpmnflow/model` endpoint for hot-swapping the active BPMN model at runtime
 
 ---
 
@@ -79,27 +80,27 @@ http://localhost:8080/swagger-ui.html
 
 ## API endpoints
 
-### Claims (domain demo)
+### Process (generic navigation)
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/claims/open?caseId=CASE-001` | Opens a new claim case — resolves the first activity from the BPMN model |
-| `GET` | `/claims/transition?from=TR-ADR` | Returns all possible next steps from a given activity |
-| `GET` | `/claims/guide` | Returns a full process guide — every activity and its outgoing transitions |
+| `POST` | `/process/open?caseId={id}` | Opens a new process instance — entry activity and status resolved from the active BPMN model |
+| `GET` | `/process/transition?from={abbreviation}` | Returns all possible next steps from a given activity |
+| `GET` | `/process/guide` | Returns a full process guide — every activity and its outgoing transitions |
 
 ### Workflow inspection (from the starter)
 
 | Method | Path | Description |
 |---|---|---|
+| `POST` | `/bpmnflow/model` | Upload a new `.bpmn` file to replace the active model at runtime |
 | `GET` | `/bpmnflow/info` | Workflow metadata: name, version, type, health summary |
 | `GET` | `/bpmnflow/validate` | Validation result and list of inconsistencies |
 | `GET` | `/bpmnflow/activities` | All activities in the workflow |
-| `GET` | `/bpmnflow/activities/{abbreviation}` | Single activity by abbreviation (e.g. `TR-ADR`) |
+| `GET` | `/bpmnflow/activities/{abbreviation}` | Single activity by abbreviation |
 | `GET` | `/bpmnflow/activities/{abbreviation}/next` | Outgoing transitions from a given activity |
 | `GET` | `/bpmnflow/stages` | All stages declared in the workflow lanes |
 | `GET` | `/bpmnflow/rules` | All workflow rules (transitions) |
-| `GET` | `/bpmnflow/rules/by-status?status=NV` | Rules triggered by a given process status |
-| `POST` | `/bpmnflow/model` | Upload a new `.bpmn` file to replace the active model at runtime |
+| `GET` | `/bpmnflow/rules/by-status?status={status}` | Rules triggered by a given process status |
 
 ---
 
@@ -110,24 +111,26 @@ src/main/
 ├── java/org/bpmnflow/demo/
 │   ├── DemoApplication.java       — Spring Boot entry point
 │   ├── SwaggerConfig.java         — OpenAPI / Swagger UI configuration
-│   └── ClaimsController.java      — Domain endpoints for the claims process
+│   └── ProcessController.java     — Generic process navigation endpoints
 └── resources/
     ├── application.yaml           — Server config and bpmnflow properties
     ├── bpmn-config.yaml           — Validation/extraction rules for the BPMN parser
-    └── process.bpmn               — The RDCT-ODN insurance claims BPMN model
+    └── process.bpmn               — Default BPMN model loaded at startup
 ```
 
 ---
 
 ## How it works
 
-The starter auto-configures a `WorkflowEngine` bean by parsing `process.bpmn` against `bpmn-config.yaml` at startup. The `ClaimsController` injects this bean and uses it to:
+The starter auto-configures a `WorkflowEngine` bean by parsing `process.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
 
-**Open a case** — queries `rulesTriggeredBy("NV")` to find the START_TO_TASK rule that defines the entry activity for new claims.
+**Open a process instance** — finds all `START_TO_TASK` rules in the active model and resolves the entry activity and initial status directly from the `StartEvent`, without requiring any input from the caller.
 
 **Resolve transitions** — calls `nextSteps(abbreviation)` to get every outgoing path from the current activity, including the conclusion code, resulting process status, and target activity.
 
 **Generate a process guide** — iterates all activities and maps each one to its available exits — useful for populating UI flows or feeding a decision engine without any hardcoded logic.
+
+**Hot-swap the model** — upload any `.bpmn` file via `POST /bpmnflow/model` and all three `ProcessController` endpoints immediately reflect the new model without restarting the application.
 
 In a production system these endpoints would be backed by a database of case instances. Here they are stateless to keep the demo self-contained and focused on the BPMNFlow integration.
 
