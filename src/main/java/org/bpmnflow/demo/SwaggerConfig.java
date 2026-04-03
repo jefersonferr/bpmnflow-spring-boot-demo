@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Configuration
 public class SwaggerConfig {
 
@@ -25,7 +26,8 @@ public class SwaggerConfig {
                                 - **Workflow inspection** — metadata, activities, stages, rules
                                 - **Navigation** — next steps from any activity, status-driven routing
                                 - **Validation** — inconsistencies detected in the BPMN model
-                                - **Claims demo** — domain example using an insurance process (RDCT-ODN)
+                                - **Model upload** — hot-swap the active BPMN model at runtime via POST /bpmnflow/model
+                                - **Process** — generic navigation endpoints that work with any active model
                                 """)
                         .version("1.0.0")
                         .contact(new Contact()
@@ -36,7 +38,7 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .tags(List.of(
                         new Tag().name("Workflow").description("Inspection and navigation of the parsed BPMN model"),
-                        new Tag().name("Claims").description("Domain demo — insurance claims process (RDCT-ODN)")
+                        new Tag().name("Process").description("Generic process navigation — works with any active BPMN model")
                 ));
     }
 }
