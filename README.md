@@ -5,6 +5,8 @@
 ![Java](https://img.shields.io/badge/Java-17-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.x-brightgreen)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Camunda 7](https://img.shields.io/badge/Camunda-7-blue)
+![Camunda 8](https://img.shields.io/badge/Camunda-8-purple)
 ![CI](https://github.com/jefersonferr/bpmnflow-spring-boot-demo/actions/workflows/ci.yml/badge.svg)
 
 ---
@@ -122,9 +124,19 @@ The model covers four participants across four swim lanes, connected by three ex
 
 ### Editing the model
 
-The model file is compatible with **Camunda Platform 7** and can be opened and edited with [Camunda Modeler](https://camunda.com/download/modeler/). To add or modify extension properties, open any element in the modeler, go to the **Properties Panel** → **Extension Properties** → click **+**.
+The model file can be opened and edited with [Camunda Modeler](https://camunda.com/download/modeler/). To add or modify extension properties, open any element in the modeler, go to the **Properties Panel** → **Extension Properties** → click **+**.
 
-> The model targets Camunda Platform 7 (`modeler:executionPlatformVersion="7.22.0"`). When opening in Camunda Modeler, make sure the execution platform is set to **Camunda Platform 7** to ensure full compatibility with the BPMNFlow extension property format.
+BPMNFlow supports both **Camunda 7** and **Camunda 8** models. The target engine is declared in `bpmn-config.yaml` via the `engine` field:
+
+```yaml
+bpmn_model_parser:
+  engine: camunda7   # or camunda8
+```
+
+- **Camunda 7** models use `<camunda:property>` elements for extension properties
+- **Camunda 8** models use `<zeebe:property>` elements for extension properties
+
+The shipped `pizza-delivery.bpmn` uses the Camunda 7 format (`engine: camunda7` in `bpmn-config.yaml`). To use a Camunda 8 model, upload it via `POST /bpmnflow/model` and update `bpmn-config.yaml` to `engine: camunda8`.
 
 ### Using a different model
 
