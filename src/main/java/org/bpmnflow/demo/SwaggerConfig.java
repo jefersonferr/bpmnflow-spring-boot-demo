@@ -41,8 +41,11 @@ public class SwaggerConfig {
                                 Download the model file: \
                                 [pizza-delivery.bpmn](https://github.com/jefersonferr/bpmnflow-spring-boot-demo/raw/master/src/main/resources/pizza-delivery.bpmn)
 
-                                The model is compatible with **Camunda Platform 7** and can be opened \
-                                and edited with [Camunda Modeler](https://camunda.com/download/modeler/).
+                                The model can be opened and edited with \
+                                [Camunda Modeler](https://camunda.com/download/modeler/). \
+                                BPMNFlow supports both **Camunda 7** and **Camunda 8** models — \
+                                the target engine is declared in `bpmn-config.yaml` via the `engine` field \
+                                (`camunda7` or `camunda8`).
 
                                 To replace it with your own model at runtime, use **POST /bpmnflow/model** \
                                 with a multipart file upload — no restart required.
