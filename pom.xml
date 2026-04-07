@@ -11,7 +11,7 @@
 
     <name>BPMNFlow Spring Boot Demo</name>
     <description>
-        Demonstrates the BPMNFlow starter with a real insurance claims process (RDCT - Outros Danos).
+        Demonstrates the BPMNFlow starter with a Pizza Delivery process.
         Shows: workflow navigation, next-step resolution, and process status routing.
     </description>
     <url>https://github.com/jefersonferr/bpmnflow-spring-boot-demo</url>
@@ -45,24 +45,6 @@
         <spring-boot.version>3.5.13</spring-boot.version>
         <bpmnflow-starter.version>3.0.0</bpmnflow-starter.version>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>github-starter</id>
-            <url>https://maven.pkg.github.com/jefersonferr/bpmnflow-spring-boot-starter</url>
-        </repository>
-        <repository>
-            <id>github-core</id>
-            <url>https://maven.pkg.github.com/jefersonferr/bpmnflow-core</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <dependencyManagement>
         <dependencies>
