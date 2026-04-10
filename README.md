@@ -196,7 +196,7 @@ src/main/
 
 ## How it works
 
-The starter (`bpmnflow-spring-boot-starter` **3.2.0**) auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
+The starter (`bpmnflow-spring-boot-starter` **3.2.1**) auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
 
 **Open a process instance** — finds all `START_TO_TASK` rules in the active model and resolves the entry activity and initial status directly from the `StartEvent`, without requiring any input from the caller.
 
