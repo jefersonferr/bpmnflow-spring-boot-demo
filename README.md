@@ -31,7 +31,7 @@ Specifically it demonstrates:
 
 - Zero-config startup — the BPMN model and config are loaded automatically via the starter
 - `ProcessController` — generic navigation endpoints that work with any active BPMN model
-- Hot-swap — upload a new `.bpmn` file at runtime via `POST /bpmnflow/model` and all endpoints immediately reflect the new model
+- Hot-swap — upload a new `.bpmn` file at runtime via `POST /process/model` and all endpoints immediately reflect the new model
 - Swagger UI with full OpenAPI documentation
 
 ---
@@ -102,14 +102,14 @@ The model covers four participants across four swim lanes, connected by three ex
 
 1. The customer selects and orders a pizza — triggering the `NEW` process status from the `StartEvent`
 2. The clerk receives the order and evaluates it at the **Order valid?** gateway:
-    - **Needs attention** (`PENDING`) → clerk calls the customer, who loops back to the gateway
-    - **Order confirmed** (`IN_PREPARATION`) → pizza goes to the chef
+   - **Needs attention** (`PENDING`) — clerk calls the customer, who loops back to the gateway
+   - **Order confirmed** (`IN_PREPARATION`) — pizza goes to the chef
 3. The chef bakes the pizza and evaluates readiness at the **Pizza ready?** gateway:
-    - **Not ready yet** (`IN_PREPARATION`) → bake again
-    - **Ready for delivery** (`OUT_FOR_DELIVERY`) → pizza goes to the delivery guy
+   - **Not ready yet** (`IN_PREPARATION`) — bake again
+   - **Ready for delivery** (`OUT_FOR_DELIVERY`) — pizza goes to the delivery guy
 4. The delivery guy delivers and evaluates payment at the **Prepaid?** gateway:
-    - **Collect payment** → receives payment and issues receipt, then customer eats
-    - **Only delivery** → customer goes straight to eating
+   - **Collect payment** — receives payment and issues receipt, then customer eats
+   - **Only delivery** — customer goes straight to eating
 5. Customer eats and the process ends at `Hunger Satisfied` with status `CLOSED`
 
 ### Extension properties summary
@@ -136,18 +136,18 @@ bpmn_model_parser:
 - **Camunda 7** models use `<camunda:property>` elements for extension properties
 - **Camunda 8** models use `<zeebe:property>` elements for extension properties
 
-The shipped `pizza-delivery.bpmn` uses the Camunda 7 format (`engine: camunda7` in `bpmn-config.yaml`). To use a Camunda 8 model, upload it via `POST /bpmnflow/model` and update `bpmn-config.yaml` to `engine: camunda8`.
+The shipped `pizza-delivery.bpmn` uses the Camunda 7 format (`engine: camunda7` in `bpmn-config.yaml`). To use a Camunda 8 model, upload it via `POST /process/model` and update `bpmn-config.yaml` to `engine: camunda8`.
 
 ### Using a different model
 
 You can replace the active model at runtime without restarting:
 
 ```bash
-curl -X POST http://localhost:8080/bpmnflow/model \
+curl -X POST http://localhost:8080/process/model \
   -F "file=@your-process.bpmn"
 ```
 
-All `/process/**` and `/bpmnflow/**` endpoints will immediately reflect the new model.
+All `/process/**` endpoints will immediately reflect the new model.
 
 ---
 
@@ -165,15 +165,15 @@ All `/process/**` and `/bpmnflow/**` endpoints will immediately reflect the new 
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/bpmnflow/model` | Upload a new `.bpmn` file to replace the active model at runtime |
-| `GET` | `/bpmnflow/info` | Workflow metadata: name, version, type, health summary |
-| `GET` | `/bpmnflow/validate` | Validation result and list of inconsistencies |
-| `GET` | `/bpmnflow/activities` | All activities in the workflow |
-| `GET` | `/bpmnflow/activities/{abbreviation}` | Single activity by abbreviation |
-| `GET` | `/bpmnflow/activities/{abbreviation}/next` | Outgoing transitions from a given activity |
-| `GET` | `/bpmnflow/stages` | All stages declared in the workflow lanes |
-| `GET` | `/bpmnflow/rules` | All workflow rules (transitions) |
-| `GET` | `/bpmnflow/rules/by-status?status={status}` | Rules triggered by a given process status |
+| `POST` | `/process/model` | Upload a new `.bpmn` file to replace the active model at runtime |
+| `GET` | `/process/info` | Workflow metadata: name, version, type, health summary |
+| `GET` | `/process/validate` | Validation result and list of inconsistencies |
+| `GET` | `/process/activities` | All activities in the workflow |
+| `GET` | `/process/activities/{abbreviation}` | Single activity by abbreviation |
+| `GET` | `/process/activities/{abbreviation}/next` | Outgoing transitions from a given activity |
+| `GET` | `/process/stages` | All stages declared in the workflow lanes |
+| `GET` | `/process/rules` | All workflow rules (transitions) |
+| `GET` | `/process/rules/by-status?status={status}` | Rules triggered by a given process status |
 
 ---
 
@@ -196,7 +196,7 @@ src/main/
 
 ## How it works
 
-The starter auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
+The starter (`bpmnflow-spring-boot-starter` **3.2.0**) auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
 
 **Open a process instance** — finds all `START_TO_TASK` rules in the active model and resolves the entry activity and initial status directly from the `StartEvent`, without requiring any input from the caller.
 
@@ -204,7 +204,7 @@ The starter auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.b
 
 **Generate a process guide** — iterates all activities and maps each one to its available exits — useful for populating UI flows or feeding a decision engine without any hardcoded logic.
 
-**Hot-swap the model** — upload any `.bpmn` file via `POST /bpmnflow/model` and all three `ProcessController` endpoints immediately reflect the new model without restarting the application.
+**Hot-swap the model** — upload any `.bpmn` file via `POST /process/model` and all three `ProcessController` endpoints immediately reflect the new model without restarting the application.
 
 In a production system these endpoints would be backed by a database of case instances. Here they are stateless to keep the demo self-contained and focused on the BPMNFlow integration.
 
