@@ -21,16 +21,16 @@ import java.util.stream.Collectors;
  *
  * <p>Injects {@code AtomicReference<WorkflowEngine>} — the same reference managed by
  * the starter's auto-configuration — so that every request always resolves to the
- * currently active engine. This means model uploads via {@code POST /bpmnflow/model}
+ * currently active engine. This means model uploads via {@code POST /process/model}
  * are immediately reflected here without any restart or re-injection.</p>
  *
  * <p>In a production system these endpoints would be backed by a database of
  * case instances; here they are stateless to keep the demo self-contained.</p>
  */
 @SuppressWarnings("unused")
-@Tag(name = "Process", description = "Generic process navigation — works with any active BPMN model")
+@Tag(name = "Workflow", description = "Generic process navigation — works with any active BPMN model")
 @RestController
-@RequestMapping("/process")
+@RequestMapping("/workflow")
 public class ProcessController {
 
     private final AtomicReference<WorkflowEngine> engineRef;

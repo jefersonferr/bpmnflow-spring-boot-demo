@@ -26,7 +26,7 @@ public class SwaggerConfig {
                                 - **Workflow inspection** — metadata, activities, stages, rules
                                 - **Navigation** — next steps from any activity, status-driven routing
                                 - **Validation** — inconsistencies detected in the BPMN model
-                                - **Model upload** — hot-swap the active BPMN model at runtime via POST /bpmnflow/model
+                                - **Model upload** — hot-swap the active BPMN model at runtime via POST /process/model
                                 - **Process** — generic navigation endpoints that work with any active model
 
                                 ---
@@ -47,7 +47,7 @@ public class SwaggerConfig {
                                 the target engine is declared in `bpmn-config.yaml` via the `engine` field \
                                 (`camunda7` or `camunda8`).
 
-                                To replace it with your own model at runtime, use **POST /bpmnflow/model** \
+                                To replace it with your own model at runtime, use **POST /process/model** \
                                 with a multipart file upload — no restart required.
                                 """)
                         .version("1.0.0")
@@ -58,8 +58,8 @@ public class SwaggerConfig {
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
                 .tags(List.of(
-                        new Tag().name("Workflow").description("Inspection and navigation of the parsed BPMN model"),
-                        new Tag().name("Process").description("Generic process navigation — works with any active BPMN model")
+                        new Tag().name("Process").description("Inspection and navigation of the parsed BPMN model"),
+                        new Tag().name("Workflow").description("Generic process navigation — works with any active BPMN model")
                 ));
     }
 }
