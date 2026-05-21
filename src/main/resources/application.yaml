@@ -4,7 +4,7 @@ server:
 bpmnflow:
   model-path: classpath:pizza-delivery.bpmn
   config-path: classpath:bpmn-config.yaml
-  expose-api: true   # Enables GET /bpmnflow/** inspection endpoints
+  expose-api: true   # Enables GET /process/** inspection endpoints
 
 spring:
   application:
@@ -13,3 +13,8 @@ spring:
     default-property-inclusion: non_null
     serialization:
       indent-output: true
+
+springdoc:
+  packages-to-scan:
+    - org.bpmnflow.demo
+    - org.bpmnflow.starter.api
