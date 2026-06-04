@@ -32,6 +32,7 @@ Specifically it demonstrates:
 - Zero-config startup — the BPMN model and config are loaded automatically via the starter
 - `ProcessController` — generic navigation endpoints that work with any active BPMN model
 - Hot-swap — upload a new `.bpmn` file at runtime via `POST /process/model` and all endpoints immediately reflect the new model
+- **API handler activities** — service tasks configured with `bpmnflow:apiHandler` definitions are visible at `GET /process/activities` (with `apiHandler` block) and `GET /process/api-activities` (filtered list)
 - Swagger UI with full OpenAPI documentation
 
 ---
@@ -40,28 +41,6 @@ Specifically it demonstrates:
 
 - Java 17+
 - Maven 3.8+
-- Access to GitHub Packages (the starter and core are published there)
-
-### GitHub Packages authentication
-
-Add the following to `~/.m2/settings.xml`, replacing `YOUR_TOKEN` with a GitHub Personal Access Token that has `read:packages` scope:
-
-```xml
-<settings>
-  <servers>
-    <server>
-      <id>github-starter</id>
-      <username>YOUR_GITHUB_USERNAME</username>
-      <password>YOUR_TOKEN</password>
-    </server>
-    <server>
-      <id>github-core</id>
-      <username>YOUR_GITHUB_USERNAME</username>
-      <password>YOUR_TOKEN</password>
-    </server>
-  </servers>
-</settings>
-```
 
 ---
 
@@ -168,12 +147,40 @@ All `/process/**` endpoints will immediately reflect the new model.
 | `POST` | `/process/model` | Upload a new `.bpmn` file to replace the active model at runtime |
 | `GET` | `/process/info` | Workflow metadata: name, version, type, health summary |
 | `GET` | `/process/validate` | Validation result and list of inconsistencies |
-| `GET` | `/process/activities` | All activities in the workflow |
+| `GET` | `/process/activities` | All activities — plain tasks and API service tasks |
+| `GET` | `/process/api-activities` | Only activities configured as API handler service tasks |
 | `GET` | `/process/activities/{abbreviation}` | Single activity by abbreviation |
 | `GET` | `/process/activities/{abbreviation}/next` | Outgoing transitions from a given activity |
 | `GET` | `/process/stages` | All stages declared in the workflow lanes |
 | `GET` | `/process/rules` | All workflow rules (transitions) |
 | `GET` | `/process/rules/by-status?status={status}` | Rules triggered by a given process status |
+
+### API handler activities
+
+Service tasks configured with a `bpmnflow:apiHandler` extension element appear in
+`GET /process/activities` with an additional `apiHandler` block:
+
+```json
+{
+  "stageCode": "SC",
+  "activityCode": "PMT",
+  "name": "Process Payment",
+  "abbreviation": "SC-PMT",
+  "apiHandler": {
+    "connectorId": "payment-api",
+    "endpoint": "https://api.example.com/v1/charge",
+    "method": "POST",
+    "retries": 0,
+    "taskHeaders": [],
+    "inputMappings": [{ "key": "payload", "value": "{\"amount\": ${{var.amount}}}" }],
+    "outputMappings": [{ "key": "txn_id", "value": "$.transaction_id" }]
+  },
+  "conclusions": [...]
+}
+```
+
+`GET /process/api-activities` returns only the activities that carry an `apiHandler`
+block — equivalent to filtering the full list to `ApiActivityNode` instances.
 
 ---
 
@@ -182,31 +189,47 @@ All `/process/**` endpoints will immediately reflect the new model.
 ```
 src/main/
 ├── java/org/bpmnflow/demo/
-│   ├── DemoApplication.java       — Spring Boot entry point
-│   ├── SwaggerConfig.java         — OpenAPI / Swagger UI configuration
-│   └── ProcessController.java     — Generic process navigation endpoints
+│   ├── DemoApplication.java       ← Spring Boot entry point
+│   ├── SwaggerConfig.java         ← OpenAPI / Swagger UI configuration
+│   └── ProcessController.java     ← Generic process navigation endpoints
 └── resources/
-    ├── application.yaml           — Server config and bpmnflow properties
-    ├── bpmn-config.yaml           — Validation/extraction rules for the BPMN parser
-    ├── pizza-delivery.bpmn        — Example BPMN model (Pizza Delivery process)
-    └── pizza-delivery.png         — Diagram image of the example model
+    ├── application.yaml           ← Server config and bpmnflow properties
+    ├── bpmn-config.yaml           ← Validation/extraction rules for the BPMN parser
+    ├── pizza-delivery.bpmn        ← Example BPMN model (Pizza Delivery process)
+    └── pizza-delivery.png         ← Diagram image of the example model
 ```
 
 ---
 
 ## How it works
 
-The starter (`bpmnflow-spring-boot-starter` **3.2.1**) auto-configures a `WorkflowEngine` bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The `ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference managed by the starter — so every request always resolves to the currently active engine.
+The starter (`bpmnflow-spring-boot-starter` **3.2.2**) auto-configures a `WorkflowEngine`
+bean by parsing `pizza-delivery.bpmn` against `bpmn-config.yaml` at startup. The
+`ProcessController` injects `AtomicReference<WorkflowEngine>` — the same shared reference
+managed by the starter — so every request always resolves to the currently active engine.
 
-**Open a process instance** — finds all `START_TO_TASK` rules in the active model and resolves the entry activity and initial status directly from the `StartEvent`, without requiring any input from the caller.
+**Open a process instance** — finds all `START_TO_TASK` rules in the active model and
+resolves the entry activity and initial status directly from the `StartEvent`, without
+requiring any input from the caller.
 
-**Resolve transitions** — calls `nextSteps(abbreviation)` to get every outgoing path from the current activity, including the conclusion code, resulting process status, and target activity.
+**Resolve transitions** — calls `nextSteps(abbreviation)` to get every outgoing path from
+the current activity, including the conclusion code, resulting process status, and target
+activity.
 
-**Generate a process guide** — iterates all activities and maps each one to its available exits — useful for populating UI flows or feeding a decision engine without any hardcoded logic.
+**Generate a process guide** — iterates all activities and maps each one to its available
+exits — useful for populating UI flows or feeding a decision engine without any hardcoded
+logic.
 
-**Hot-swap the model** — upload any `.bpmn` file via `POST /process/model` and all three `ProcessController` endpoints immediately reflect the new model without restarting the application.
+**Hot-swap the model** — upload any `.bpmn` file via `POST /process/model` and all
+`ProcessController` endpoints immediately reflect the new model without restarting.
 
-In a production system these endpoints would be backed by a database of case instances. Here they are stateless to keep the demo self-contained and focused on the BPMNFlow integration.
+**Inspect API handler activities** — `GET /process/activities` serializes `ApiActivityNode`
+instances with a full `apiHandler` block via the Jackson MixIn registered by the starter.
+`GET /process/api-activities` filters the list to only those entries.
+
+In a production system these endpoints would be backed by a database of case instances.
+Here they are stateless to keep the demo self-contained and focused on the BPMNFlow
+integration.
 
 ---
 
